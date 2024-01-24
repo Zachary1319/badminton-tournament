@@ -25,28 +25,40 @@ const MatchInput = () => {
     },
     select: {
       marginRight: '5px',
+      marginLeft: '5px',
     },
     input: {
       marginRight: '5px',
+    },
+    submit: {
+      margin: '10px',
+      height: '40px',
+      fontSize: '15px',
     },
     resultContainer: {
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
+      marginTop: '30px',
     },
     resultDetailContainer: {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-around',
       width: '80vw',
+    },
+    rulesContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      width: '60vw',
     }
   };
 
   const location = useLocation();
   const playerNames = location.state?.playerNames || [];
   const [isResultsIncomplete, setIsResultsIncomplete] = useState(false);
-
-
+  const [errorMessage, setErrorMessage] = useState("");
 
   const initialRoundState = () => new Array(playerNames.length / 2).fill(null).map(() => ({
     player1: '',
@@ -118,6 +130,9 @@ const MatchInput = () => {
 
   const handleSubmit = async () => {
     try {
+      setResultsData({ scores: {}, rankings: [], pairings: [] });
+      setErrorMessage("");
+
       const allResultsFilled = Object.values(matchResults).every(round =>
         round.every(match =>
           match.player1 && match.player2 && match.score1 && match.score2
@@ -132,6 +147,7 @@ const MatchInput = () => {
       }
     } catch (error) {
       console.error('error', error);
+      setErrorMessage(error.response.data.message || "An error occurred");
     }
   };
 
@@ -181,8 +197,14 @@ const MatchInput = () => {
         </div>
       </div>
       {isResultsIncomplete && <p style={{ color: 'red' }}>Please fill in all match results.</p>}
-      <button onClick={handleSubmit}>Submit</button>
+      <button onClick={handleSubmit} style={styles.submit}>Submit</button>
       <DisplayResults />
+      {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+      <div style={styles.rulesContainer}>
+        <h3>Rules Explanation</h3>
+        <p><strong>Ranking Rules:</strong> Players are ranked based on the total number of wins (primary points). In case of a tie, the score difference (secondary points) is used as a tiebreaker.</p>
+        <p><strong>Pairing Rules:</strong> For the next round, players are paired ensuring that the score difference is no more than 10 points and they have not previously faced each other in the tournament.</p>
+      </div>
     </div>
   );
 };
