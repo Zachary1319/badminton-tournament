@@ -128,33 +128,57 @@ const MatchInput = () => {
     return <div style={styles.matchContainer}>{matches}</div>;
   };
 
-  const handleSubmit = async () => {
+  const postMatchResults = async () => {
     try {
-      setResultsData({ scores: {}, rankings: [], pairings: [] });
-      setErrorMessage("");
-
-      const allResultsFilled = Object.values(matchResults).every(round =>
-        round.every(match =>
-          match.player1 && match.player2 && match.score1 && match.score2
-        )
-      );
-
-      setIsResultsIncomplete(!allResultsFilled);
-      if (allResultsFilled){
-        const response = await axios.post('http://localhost:3000/submit-results', matchResults);
-        console.log('success', response.data);
-        setResultsData(response.data.data);
-      }
+      const response = await axios.post('http://localhost:3000/matches/results', matchResults);
+      const matchId = response.data.data.matchId;
+      await fetchRankings(matchId);
+      await fetchPairings(matchId);
     } catch (error) {
-      console.error('error', error);
-      setErrorMessage(error.response.data.message || "An error occurred");
+      console.error('Error posting match results', error);
+      setErrorMessage(error.response.data.message || "Error occurred while posting match results");
+      throw error;
+    }
+  };
+
+  const fetchRankings = async (matchId) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/matches/rankings/${matchId}`);
+      setResultsData(prevData => ({ ...prevData, scores: response.data.data.scores, rankings: response.data.data.rankings }));
+    } catch (error) {
+      console.error('Error fetching rankings', error);
+      setErrorMessage(error.response.data.message || "Error occurred while fetching rankings");
+    }
+  };
+
+  const fetchPairings = async (matchId) => {
+    try {
+      const response = await axios.get(`http://localhost:3000/matches/pairings/${matchId}`);
+      setResultsData(prevData => ({ ...prevData, pairings: response.data.data.pairings }));
+    } catch (error) {
+      console.error('Error fetching pairings', error);
+      setErrorMessage(error.response.data.message || "Error occurred while fetching pairings");
+    }
+  };
+
+  const handleSubmit = async () => {
+    setResultsData({ scores: {}, rankings: [], pairings: [] });
+    setErrorMessage("");
+
+    const allResultsFilled = Object.values(matchResults).every(round =>
+      round.every(match => match.player1 && match.player2 && match.score1 && match.score2)
+    );
+
+    setIsResultsIncomplete(!allResultsFilled);
+    if (allResultsFilled) {
+      await postMatchResults();
     }
   };
 
   const DisplayResults = () => {
     const renderRankings = () => (
       <ul>
-        {resultsData.rankings.map((player, index) => (
+        {resultsData.rankings && resultsData.rankings.map((player, index) => (
           <li key={index}>
             {`${index + 1}. ${player}: Wins - ${resultsData.scores[player].primary}, Score Difference - ${resultsData.scores[player].secondary}`}
           </li>
@@ -173,7 +197,7 @@ const MatchInput = () => {
           <div>
             <h4>Next Round Pairings:</h4>
             <ul>
-              {resultsData.pairings.map((pair, index) => (
+              {resultsData.pairings && resultsData.pairings.map((pair, index) => (
                 <li key={index}>{pair.join(' vs ')}</li>
               ))}
             </ul>
