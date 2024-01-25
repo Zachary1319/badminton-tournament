@@ -18,6 +18,9 @@ This React application is designed to manage and display pairings for players in
 
 In the project directory, you can run:
 
+### `npm install`
+Install the necessary packages and dependencies.
+
 ### `npm start`
 
 Runs the app in development mode.
