@@ -90,7 +90,6 @@ const MatchInput = () => {
       const newRoundResults = [...newResults[round]];
       newRoundResults[index] = { ...newRoundResults[index], [field]: value };
       newResults[round] = newRoundResults;
-      console.log(newResults);
       return newResults;
     });
   };
