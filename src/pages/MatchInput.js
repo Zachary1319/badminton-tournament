@@ -129,10 +129,10 @@ const MatchInput = () => {
 
   const postMatchResults = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/matches/results', matchResults);
-      const matchId = response.data.data.matchId;
-      await fetchRankings(matchId);
-      await fetchPairings(matchId);
+      const response = await axios.post('http://localhost:3000/tournaments', matchResults);
+      const tournamentId = response.data.data.tournamentId;
+      await fetchRankings(tournamentId);
+      await fetchPairings(tournamentId);
     } catch (error) {
       console.error('Error posting match results', error);
       setErrorMessage(error.response.data.message || "Error occurred while posting match results");
@@ -140,9 +140,9 @@ const MatchInput = () => {
     }
   };
 
-  const fetchRankings = async (matchId) => {
+  const fetchRankings = async (tournamentId) => {
     try {
-      const response = await axios.get(`http://localhost:3000/matches/rankings/${matchId}`);
+      const response = await axios.get(`http://localhost:3000/tournaments/${tournamentId}/rankings`);
       setResultsData(prevData => ({ ...prevData, scores: response.data.data.scores, rankings: response.data.data.rankings }));
     } catch (error) {
       console.error('Error fetching rankings', error);
@@ -150,9 +150,9 @@ const MatchInput = () => {
     }
   };
 
-  const fetchPairings = async (matchId) => {
+  const fetchPairings = async (tournamentId) => {
     try {
-      const response = await axios.get(`http://localhost:3000/matches/pairings/${matchId}`);
+      const response = await axios.get(`http://localhost:3000/tournaments/${tournamentId}/pairings`);
       setResultsData(prevData => ({ ...prevData, pairings: response.data.data.pairings }));
     } catch (error) {
       console.error('Error fetching pairings', error);
@@ -179,7 +179,7 @@ const MatchInput = () => {
       <ul>
         {resultsData.rankings && resultsData.rankings.map((player, index) => (
           <li key={index}>
-            {`${index + 1}. ${player}: Wins - ${resultsData.scores[player].primary}, Score Difference - ${resultsData.scores[player].secondary}`}
+            {`${index + 1}. ${player}: Wins - ${resultsData.scores[player].primaryPoints}, Score Difference - ${resultsData.scores[player].secondaryPoints}`}
           </li>
         ))}
       </ul>
